@@ -63,28 +63,10 @@ discovery(){
 	cleandirsearch $domain
 	aqua $domain
 	cleanup $domain
-	waybackrecon $domain
+	
 	dirsearcher 
 
 
-}
-waybackrecon () {
-echo "Scraping wayback for data..."
-cat ./$domain/$foldername/urllist.txt | waybackurls > ./$domain/$foldername/wayback-data/waybackurls.txt 
-cat ./$domain/$foldername/wayback-data/waybackurls.txt  | sort -u | unfurl --unique keys > ./$domain/$foldername/wayback-data/paramlist.txt
-[ -s ./$domain/$foldername/wayback-data/paramlist.txt ] && echo "Wordlist saved to /$domain/$foldername/wayback-data/paramlist.txt" 
-
-cat ./$domain/$foldername/wayback-data/waybackurls.txt  | sort -u | grep -P "\w+\.js(\?|$)" | sort -u > ./$domain/$foldername/wayback-data/jsurls.txt
-[ -s ./$domain/$foldername/wayback-data/jsurls.txt ] && echo "JS Urls saved to /$domain/$foldername/wayback-data/jsurls.txt" 
-
-cat ./$domain/$foldername/wayback-data/waybackurls.txt  | sort -u | grep -P "\w+\.php(\?|$) | sort -u " > ./$domain/$foldername/wayback-data/phpurls.txt
-[ -s ./$domain/$foldername/wayback-data/phpurls.txt ] && echo "PHP Urls saved to /$domain/$foldername/wayback-data/phpurls.txt" 
-
-cat ./$domain/$foldername/wayback-data/waybackurls.txt  | sort -u | grep -P "\w+\.aspx(\?|$) | sort -u " > ./$domain/$foldername/wayback-data/aspxurls.txt
-[ -s ./$domain/$foldername/wayback-data/aspxurls.txt ] && echo "ASP Urls saved to /$domain/$foldername/wayback-data/aspxurls.txt" 
-
-cat ./$domain/$foldername/wayback-data/waybackurls.txt  | sort -u | grep -P "\w+\.jsp(\?|$) | sort -u " > ./$domain/$foldername/wayback-data/jspurls.txt
-[ -s ./$domain/$foldername/wayback-data/jspurls.txt ] && echo "JSP Urls saved to /$domain/$foldername/wayback-data/jspurls.txt" 
 }
 
 cleanup(){
@@ -127,7 +109,7 @@ recon(){
 dirsearcher(){
 
 echo "Starting dirsearch..." 
-cat ./$domain/$foldername/urllist.txt | xargs -P$subdomainThreads -I % sh -c "python3 ~/tools/dirsearch/dirsearch.py -e php,asp,aspx,jsp,html,zip,jar -w $dirsearchWordlist -t $dirsearchThreads -u % | grep Target && tput sgr0 && ./lazyrecon.sh -r $domain -r $foldername -r %"
+cat ./$domain/$foldername/urllist.txt | xargs -P$subdomainThreads -I % sh -c "python3 ~/tools/dirsearch/dirsearch.py -e php,asp,aspx,jsp,html,json -w $dirsearchWordlist -t $dirsearchThreads -u % | grep Target && tput sgr0 && ./lazyrecon.sh -r $domain -r $foldername -r %"
 }
 
 aqua(){
@@ -226,7 +208,6 @@ echo '<script>$(document).ready( function () {
 	     "autoWidth": true,
             "columns": [{ "width": "5%" },{ "width": "5%" },null],
                 "lengthMenu": [[10, 25, 50,100, -1], [10, 25, 50,100, "All"]],
-
     });
 } );</script></head>'>> ./$domain/$foldername/reports/$subdomain.html 
 
@@ -311,16 +292,6 @@ check=$(echo "$ln" | awk '{print $1}')
 done
 
 
- 
-echo "</pre>" >> ./$domain/$foldername/reports/$subdomain.html
-echo "<h2>NMAP Results</h2>
-<pre>
-$(nmap -sV -T3 -Pn -p2075,2076,6443,3868,3366,8443,8080,9443,9091,3000,8000,5900,8081,6000,10000,8181,3306,5000,4000,8888,5432,15672,9999,161,4044,7077,4040,9000,8089,443,7447,7080,8880,8983,5673,7443,19000,19080 $subdomain  |  grep -E 'open|filtered|closed')
-</pre>
-</div></article></div>
-</div></div></body></html>" >> ./$domain/$foldername/reports/$subdomain.html
-
-
 }
 master_report()
 {
@@ -390,13 +361,6 @@ echo "</tbody></table>
 <pre>" >> ./$domain/$foldername/master_report.html
 cat ./$domain/$foldername/pos.txt >> ./$domain/$foldername/master_report.html
 
-echo "</pre><div><h2>Wayback data</h2></div>" >> ./$domain/$foldername/master_report.html
-echo "<table><tbody>" >> ./$domain/$foldername/master_report.html
-[ -s ./$domain/$foldername/wayback-data/paramlist.txt ] && echo "<tr><td><a href='./wayback-data/paramlist.txt'>Params wordlist</a></td></tr>" >> ./$domain/$foldername/master_report.html
-[ -s ./$domain/$foldername/wayback-data/jsurls.txt ] && echo "<tr><td><a href='./wayback-data/jsurls.txt'>Javscript files</a></td></tr>" >> ./$domain/$foldername/master_report.html
-[ -s ./$domain/$foldername/wayback-data/phpurls.txt ] && echo "<tr><td><a href='./wayback-data/phpurls.txt'>PHP Urls</a></td></tr>" >> ./$domain/$foldername/master_report.html
-[ -s ./$domain/$foldername/wayback-data/aspxurls.txt ] && echo "<tr><td><a href='./wayback-data/aspxurls.txt'>ASP Urls</a></td></tr>" >> ./$domain/$foldername/master_report.html
-echo "</tbody></table></div>" >> ./$domain/$foldername/master_report.html
 
 echo '</article><article class="post-container-right" itemscope="" itemtype="http://schema.org/BlogPosting">
 <header class="post-header">
@@ -413,13 +377,6 @@ echo "<h2>Host Info</h2>
 $(host $domain)
 </pre>" >> ./$domain/$foldername/master_report.html
 
-echo "<h2>NMAP Results</h2>
-<pre>
-$(nmap -sV -T3 -Pn -p3868,3366,8443,8080,9443,9091,3000,8000,5900,8081,6000,10000,8181,3306,5000,4000,8888,5432,15672,9999,161,4044,7077,4040,9000,8089,443,7447,7080,8880,8983,5673,7443,19000,19080 $domain |  grep -E 'open|filtered|closed')
-</pre>
-</div></article></div>
-</div></div></body></html>" >> ./$domain/$foldername/master_report.html
-
 
 }
 
@@ -430,7 +387,7 @@ logo(){
 / \   /  _ \/_   \\\  \///  __\/  __//   _\/  _ \/ \  /|
 | |   | / \| /   / \  / |  \/||  \  |  /  | / \|| |\ ||
 | |_/\| |-||/   /_ / /  |    /|  /_ |  \__| \_/|| | \||
-\____/\_/ \|\____//_/   \_/\_\\\____\\\____/\____/\_/  \\|
+\____/\_/ \|\____//_/   \_/\_\\\____\\\____/\____/\_/  \\|SIMPLE_VERSION
 ${reset}                                                      "
 }
 cleandirsearch(){
@@ -468,7 +425,6 @@ fi
   mkdir ./$domain/$foldername/aqua_out
   mkdir ./$domain/$foldername/aqua_out/parsedjson
   mkdir ./$domain/$foldername/reports/
-  mkdir ./$domain/$foldername/wayback-data/
   mkdir ./$domain/$foldername/screenshots/
   touch ./$domain/$foldername/crtsh.txt
   touch ./$domain/$foldername/mass.txt
@@ -497,4 +453,3 @@ path=$(pwd)
 foldername=recon-$todate
 source ~/.bash_profile
 main $domain
-
