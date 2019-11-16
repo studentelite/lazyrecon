@@ -52,7 +52,7 @@ This tool allows you to gather some information that should help you identify wh
 
 
 # Installation & Requirements
-- Download the install script from https://github.com/nahamsec/bbht.
+- Download the install script from https://github.com/nahamsec/bbht (full version) or https://github.com/studentelite/bbht simple version
 - Go version 1.10 or later.
 
 ### System Requirements
